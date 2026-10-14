@@ -1,24 +1,21 @@
-# Agent instructions — Distributed Systems Lab
+# AGENTS.md — Distributed Systems Lab
 
-This is a **learning project**, not a race to complete infrastructure. Build one small distributed application through focused experiments. Each experiment begins with a question and hypothesis, then tests the result using relevant evidence (correctness, latency, consistency, throughput, or failure behavior).
+## Purpose
+Teach and build a small distributed application through **one concept-driven experiment at a time**. The learner writes and tests each step. Measurements must fit the question; never invent results.
 
-## Read first
+## Read before acting
+- `README.md` and `docs/ROADMAP.md`
+- `curriculum/00-infrastructure/README.md` for the current module
+- **Only the current lesson** in `curriculum/00-infrastructure/`
+- `docs/EXPERIMENT_TEMPLATE.md` when documenting results
 
-- `README.md` for the project overview.
-- `docs/ROADMAP.md` for the planned architecture stages.
-- `docs/EXPERIMENT_TEMPLATE.md` for documenting experiments.
-- `docs/experiments/00-guided-rebuild.md` for the **current task**.
-
-## Safety and workflow
-
-- Host: `optiplex-media-server`, Debian 13, i5-6500, 32 GB RAM; repository in `/opt/distributed-systems-lab`. Existing Docker media services must remain untouched. k6 will run on a separate Windows desktop.
-- All lab VMs, networking, and disks must be isolated, named, and disposable. Keep the repository, Git credentials, and records outside disposable storage.
-- **Teach before implementing.** Explain the next file's role and relevant trade-offs; ask the learner to predict what it does. Work on **one file or checkpoint at a time**, then stop for feedback.
-- **Do not automatically implement an entire experiment, execute the full lifecycle, or advance to another stage.**
-- Inspect current state before making changes; never assume the live host matches past reports.
-- Obtain explicit approval before destructive operations, changing host networking/firewall rules, installing host packages, or running disruptive tests. Never run broad Docker prune/cleanup commands.
-- Use IaC, small readable changes, and actual measurements. Never invent successful checks or experimental outcomes.
+## Working method
+1. Explain one concept, ask the learner to predict behavior, then propose a small practical task.
+2. Let the learner attempt implementation; review or debug their work. Do not provide a full working solution unless requested.
+3. Verify observable behavior and record real evidence. Stop at each lesson checkpoint. Never automatically advance through multiple lessons.
+4. Keep the new implementation in `infrastructure/`. The completed original lives in `reference/experiment-00/` and on `main`. **Don't copy it wholesale or run archived scripts in-place.**
+5. Protect unrelated Optiplex services. Get explicit approval before host installs, network/firewall changes, creating VMs, destructive commands, or disruptive tests. No broad cleanup.
+6. Keep resources isolated and disposable, and source/state/secrets separate. Don't claim an environment check happened unless it did.
 
 ## Current focus
-
-**Experiment 00: Guided rebuild.** Start with the architecture and `infra/experiment-00/versions.tf`, **without provisioning anything**. Explain KVM, QEMU, libvirt, Terraform, cloud-init, and Ansible in their respective roles. Then proceed through the checkpoints in `docs/experiments/00-guided-rebuild.md`, waiting for learner review at each step. The known-good initial implementation and historical measurements are preserved on `main`; this learning run must collect its own evidence.
+**Module 00, Lesson 01: Virtualization and isolation.** Start with its explanation and read-only checks; don't provision anything. The host is a Debian 13 Optiplex (i5-6500, 32 GB RAM) running existing media services. k6 will be run later from a separate Windows desktop.
