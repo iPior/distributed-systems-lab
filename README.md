@@ -1,24 +1,19 @@
 # Distributed Systems Lab
 
-An experiment-driven learning project: evolve one small application from a single VM toward a distributed system. Introduce components only to answer a focused question, measure what matters to that question, and document actual observations and trade-offs.
+Learn distributed systems by **building one small application in stages** and running focused experiments. Each experiment begins with a research question, a prediction, a controlled procedure, and real evidence. We examine correctness, consistency, resilience, latency, or throughput according to the concept being studied.
 
-The planned progression includes a Go API, multiple replicas and HAProxy, Redis sessions and caching, PostgreSQL replication, RabbitMQ workers, and network fault experiments. See [the roadmap](docs/ROADMAP.md) and [experiment template](docs/EXPERIMENT_TEMPLATE.md).
+- [Roadmap](docs/ROADMAP.md)
+- [Experiment template](docs/EXPERIMENT_TEMPLATE.md)
+- [Start Module 00 — Infrastructure](curriculum/00-infrastructure/README.md)
 
-## Current stage: Experiment 00 — guided rebuild
+## Current work: Rebuild Experiment 00 by hand
 
-We are **revisiting** the initial infrastructure experiment to understand each file and decision before running it. Follow [the guided, checkpoint-by-checkpoint rebuild](docs/experiments/00-guided-rebuild.md). Do not let an agent perform every step at once.
+The first infrastructure experiment was originally completed by an agent. This branch preserves that known-good implementation under [`reference/experiment-00/`](reference/experiment-00/) while reserving **`infrastructure/`** for the learner's new implementation. The old reference scripts retain their original paths internally and must **not be executed in-place**.
 
-The original Experiment 00 was already completed and documented: [reproducible infrastructure report](docs/experiments/00-reproducible-infrastructure.md). That record describes a Terraform/libvirt Debian VM, Ansible configuration, stop/start, destruction, and recreation, with host-service checks. **Those are historical results, not proof of a new guided run.** The known-good implementation remains in this branch as study material and on `main` as a reference.
+Work through the [seven lessons](curriculum/00-infrastructure/README.md) one at a time. Do not skip ahead or ask an agent to finish the module. Record new observations in [the learning run](docs/experiments/00-learning-run.md), separately from the historical results archived with the reference.
 
-### Existing implementation
+The Optiplex runs unrelated Docker services: keep lab networks, disks, and VM resources isolated; require approval for changes that could affect the host.
 
-- `infra/experiment-00/`: Terraform for one VM, private NAT, managed disks, and cloud-init.
-- `ansible/`: guest configuration and verification.
-- `scripts/lab`: explicit prepare, validate, plan, provision, configure, SSH, stop, start, destroy commands.
-- `docs/experiments/00-host-packages.md`: existing host dependency ledger.
+## Future direction
 
-The Optiplex also hosts unrelated media services. Lab changes must not disrupt them. Require explicit approval for host-level, network-changing, and destructive operations.
-
-### Working agreement
-
-Study the next file, explain its purpose and expected behavior, make only the agreed change, validate it, and pause. When a live lifecycle is approved, record the new run separately rather than overwriting historical findings.
+After mastering VM provisioning, gradually introduce a Go API, HAProxy and replicas, Redis sessions, PostgreSQL primary and read replicas, caching and invalidation, RabbitMQ workers, and network fault injection. Every component must support a specific learning question.
