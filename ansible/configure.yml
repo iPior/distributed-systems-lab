@@ -1,0 +1,44 @@
+---
+- name: Configure and verify Experiment 00
+  hosts: lab
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for SSH access
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - name: Wait for cloud-init to finish
+      ansible.builtin.command: cloud-init status --wait
+      changed_when: false
+
+    - name: Gather guest facts
+      ansible.builtin.setup:
+
+    - name: Verify the expected OS and CPU allocation
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Debian'
+          - ansible_facts.distribution_major_version == '13'
+          - ansible_facts.processor_vcpus == 1
+
+    - name: Set the hostname
+      ansible.builtin.hostname:
+        name: dsl-node-01
+
+    - name: Ensure basic guest management packages are installed
+      ansible.builtin.apt:
+        name:
+          - python3
+          - sudo
+          - openssh-server
+          - ca-certificates
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Ensure SSH starts on boot
+      ansible.builtin.service:
+        name: ssh
+        enabled: true
+        state: started

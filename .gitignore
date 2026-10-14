@@ -1,0 +1,20 @@
+# Agent-local metadata
+.agents/
+.claude/
+.codex/
+.aws/
+
+# Keys, image cache, generated inventory, and local tools
+.local/
+.venv/
+__pycache__/
+
+# Terraform local data (commit .terraform.lock.hcl)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log

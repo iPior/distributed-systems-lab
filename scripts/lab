@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+TF="$ROOT/infra/experiment-00"
+LOCAL="$ROOT/.local"
+export PATH="$LOCAL/bin:$PATH"
+VM=dsl-node-01
+URI=qemu:///system
+IMAGE=debian-13-genericcloud-amd64-20261001-2618.qcow2
+IMAGE_URL="https://cloud.debian.org/images/cloud/trixie/20261001-2618/$IMAGE"
+IMAGE_SHA512=f46f0671a6e5bdec5291ab8972bae2f10e5408c2f64a74078f11efc2f06a436a9d0313ed50e0472542eeabf780e9f7c792ac0a314c6c20507fcd9fd81b468c3d
+export TF_IN_AUTOMATION=1
+export LC_ALL=C.UTF-8
+export ANSIBLE_LOCAL_TEMP="$LOCAL/ansible-tmp"
+
+tf() { terraform -chdir="$TF" "$@"; }
+vir() { virsh --connect "$URI" "$@"; }
+guest_ssh() {
+  ssh -i "$LOCAL/id_ed25519" -o IdentitiesOnly=yes \
+    -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$LOCAL/known_hosts" \
+    lab@192.168.100.10 "$@"
+}
+case "${1:-help}" in
+  prepare)
+    umask 077
+    mkdir -p "$LOCAL"
+    # Provider 0.8.3 invokes mkisofs by name; xorrisofs is xorriso's compatible CLI.
+    if ! command -v mkisofs >/dev/null; then
+      iso_tool=$(command -v xorrisofs) || {
+        echo 'Install xorriso before preparing cloud-init.' >&2; exit 1;
+      }
+      mkdir -p "$LOCAL/bin"
+      ln -s "$iso_tool" "$LOCAL/bin/mkisofs"
+    fi
+    if [[ ! -e "$LOCAL/id_ed25519" && ! -e "$LOCAL/id_ed25519.pub" ]]; then
+      ssh-keygen -q -t ed25519 -N '' -C dsl-exp00 -f "$LOCAL/id_ed25519"
+    fi
+    [[ -f "$LOCAL/id_ed25519" && -f "$LOCAL/id_ed25519.pub" ]] || {
+      echo 'Incomplete SSH key pair in .local; resolve it manually.' >&2; exit 1;
+    }
+    if [[ ! -f "$LOCAL/debian13.qcow2" ]]; then
+      curl --fail --location --proto '=https' --tlsv1.2 \
+        -o "$LOCAL/debian13.qcow2.part" "$IMAGE_URL"
+      printf '%s  %s\n' "$IMAGE_SHA512" "$LOCAL/debian13.qcow2.part" | sha512sum --check
+      mv "$LOCAL/debian13.qcow2.part" "$LOCAL/debian13.qcow2"
+    fi
+    printf '%s  %s\n' "$IMAGE_SHA512" "$LOCAL/debian13.qcow2" | sha512sum --check
+    # A standalone qcow2 keeps teardown simple and avoids backing-chain access
+    # issues. Convert and grow a copy; preserve the checksummed original image.
+    qemu-img convert -f qcow2 -O qcow2 "$LOCAL/debian13.qcow2" "$LOCAL/debian13-root.qcow2.part"
+    qemu-img resize -f qcow2 "$LOCAL/debian13-root.qcow2.part" 20G
+    mv "$LOCAL/debian13-root.qcow2.part" "$LOCAL/debian13-root.qcow2"
+    tf init
+    ;;
+  validate)
+    command -v xsltproc >/dev/null || {
+      echo 'Install xsltproc with scripts/install-host-packages before VM creation.' >&2; exit 1;
+    }
+    tf fmt -check
+    tf validate
+    ansible-playbook -i "$ROOT/ansible/inventory.ini" "$ROOT/ansible/configure.yml" --syntax-check
+    ;;
+  plan) tf plan ;;
+  provision)
+    echo 'This creates a host NAT bridge/firewall rules. Obtain explicit approval first.'
+    echo 'Review the Terraform plan; reject any unexpected changes or deletions.'
+    tf apply
+    ;;
+  configure)
+    ANSIBLE_HOST_KEY_CHECKING=True \
+    ANSIBLE_SSH_ARGS="-o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=$LOCAL/known_hosts" \
+      ansible-playbook -i "$ROOT/ansible/inventory.ini" --private-key "$LOCAL/id_ed25519" \
+        "$ROOT/ansible/configure.yml"
+    ;;
+  ssh) shift; guest_ssh "$@" ;;
+  status)
+    vir dominfo "$VM"
+    vir domblklist "$VM" --details
+    vir net-info dsl-exp00
+    vir pool-info dsl-exp00
+    ;;
+  stop)
+    echo 'Requesting graceful shutdown of dsl-node-01 only.'
+    vir shutdown "$VM"
+    for ((attempt=0; attempt<60; attempt++)); do
+      if [[ $(vir domstate "$VM") == 'shut off' ]]; then
+        echo 'dsl-node-01 is shut off.'; exit 0
+      fi
+      sleep 2
+    done
+    echo 'Shutdown timed out; no forced power-off was attempted.' >&2
+    exit 1
+    ;;
+  start)
+    # Read the complete output: grep -q can cause SIGPIPE under pipefail.
+    vir net-start dsl-exp00 2>/dev/null || vir net-info dsl-exp00 | grep 'Active:.*yes' >/dev/null
+    vir start "$VM"
+    ;;
+  destroy)
+    echo 'Obtain explicit approval before running this command.'
+    echo 'Review all deletions below. Only the five Experiment 00 resources are expected.'
+    tf plan -destroy
+    echo 'Terraform will show the destruction plan again and require confirmation.'
+    tf destroy
+    # A recreated guest gets a new host key. Forget only the destroyed lab guest.
+    if [[ -f "$LOCAL/known_hosts" ]]; then
+      ssh-keygen -f "$LOCAL/known_hosts" -R 192.168.100.10
+    fi
+    ;;
+  *)
+    echo 'Usage: scripts/lab {prepare|validate|plan|provision|configure|ssh|status|stop|start|destroy}'
+    ;;
+esac
