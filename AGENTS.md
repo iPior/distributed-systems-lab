@@ -1,31 +1,24 @@
-# AGENTS.md — Distributed Systems Lab
+# Agent instructions — Distributed Systems Lab
 
-## Purpose
+This is a **learning project**, not a race to complete infrastructure. Build one small distributed application through focused experiments. Each experiment begins with a question and hypothesis, then tests the result using relevant evidence (correctness, latency, consistency, throughput, or failure behavior).
 
-This is a learning project: progressively build a small distributed application and use **focused experiments** to understand its behavior. Each experiment asks one question, tests a hypothesis, and documents actual observations. Don't optimize every stage for throughput; choose measurements that fit the question (latency, correctness, consistency, recovery, etc.). Never invent results.
+## Read first
 
-## Environment
+- `README.md` for the project overview.
+- `docs/ROADMAP.md` for the planned architecture stages.
+- `docs/EXPERIMENT_TEMPLATE.md` for documenting experiments.
+- `docs/experiments/00-guided-rebuild.md` for the **current task**.
 
-- Repo: `ipior/distributed-systems-lab`, hosted at `/opt/distributed-systems-lab` on `optiplex-media-server`.
-- Host: Debian 13, Intel i5-6500 (4 cores), 32 GB RAM, 1 TB SSD; KVM support confirmed.
-- The host already runs important Docker media/homelab services. **Do not modify, disrupt, or clean up unrelated resources.**
-- Intended stack: Terraform + libvirt for disposable VMs, Ansible for configuration, Docker Compose and Go for the application. Later experiments may add HAProxy, Redis, PostgreSQL replicas, RabbitMQ, and fault injection.
-- k6 load tests will run on a separate Windows PC, not on the Optiplex.
+## Safety and workflow
 
-## Working rules
+- Host: `optiplex-media-server`, Debian 13, i5-6500, 32 GB RAM; repository in `/opt/distributed-systems-lab`. Existing Docker media services must remain untouched. k6 will run on a separate Windows desktop.
+- All lab VMs, networking, and disks must be isolated, named, and disposable. Keep the repository, Git credentials, and records outside disposable storage.
+- **Teach before implementing.** Explain the next file's role and relevant trade-offs; ask the learner to predict what it does. Work on **one file or checkpoint at a time**, then stop for feedback.
+- **Do not automatically implement an entire experiment, execute the full lifecycle, or advance to another stage.**
+- Inspect current state before making changes; never assume the live host matches past reports.
+- Obtain explicit approval before destructive operations, changing host networking/firewall rules, installing host packages, or running disruptive tests. Never run broad Docker prune/cleanup commands.
+- Use IaC, small readable changes, and actual measurements. Never invent successful checks or experimental outcomes.
 
-1. Work on **one experiment at a time**. Do not implement future stages prematurely.
-2. Keep code and infrastructure simple, readable, reproducible, and version-controlled.
-3. Document each experiment in its own Markdown file: **question, hypothesis, setup, procedure, observations, interpretation, and trade-offs**. Leave results blank until measured.
-4. Change one significant variable at a time where practical; record relevant hardware, resource limits, and test conditions.
-5. Keep lab VMs, networks, disks, and containers isolated and clearly named. Lab infrastructure must be safe to stop, destroy, and rebuild without affecting existing services or deleting the repository.
-6. **Ask before destructive commands, host networking/firewall changes, or disruptive tests.** Never run broad Docker prune or host cleanup commands.
-7. Inspect the repository and current environment before acting. Explain meaningful decisions and report what was actually verified.
+## Current focus
 
-## Current focus: Experiment 00 — Reproducible Infrastructure
-
-**Question:** Can we provision, access, stop, destroy, and recreate an isolated Debian VM entirely from code?
-
-Start with a single VM named `dsl-node-01` (1 vCPU, 2 GB RAM, 20 GB thin-provisioned disk). Verify tooling first; do not assume libvirt or Terraform has been installed. Provision with Terraform/libvirt and configure access with Ansible or cloud-init. Document the setup, VM lifecycle, validation, and safe teardown in `docs/experiments/00-reproducible-infrastructure.md`.
-
-**Done when:** the VM can be created, accessed, stopped, destroyed, and recreated without affecting other Optiplex services. Do not deploy the Go API or any distributed components yet.
+**Experiment 00: Guided rebuild.** Start with the architecture and `infra/experiment-00/versions.tf`, **without provisioning anything**. Explain KVM, QEMU, libvirt, Terraform, cloud-init, and Ansible in their respective roles. Then proceed through the checkpoints in `docs/experiments/00-guided-rebuild.md`, waiting for learner review at each step. The known-good initial implementation and historical measurements are preserved on `main`; this learning run must collect its own evidence.
