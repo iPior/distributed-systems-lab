@@ -1,0 +1,8 @@
+#cloud-config
+users:
+  - name: lab
+    gecos: Lab learner
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: false
+    hashed_passwd: '__PASSWORD_HASH__'
