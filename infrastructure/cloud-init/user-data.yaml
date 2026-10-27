@@ -1,0 +1,11 @@
+#cloud-config
+
+hostname: dsl-node-01
+
+users: 
+  - name: lab
+    shell: /bin/bash
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHVWcAJ39EuO2U0RqiPfW9BQTKSo4HJH22M8ybP84jr1 dsl-lesson03
