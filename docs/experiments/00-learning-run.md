@@ -6,7 +6,10 @@ Use [the experiment template](../EXPERIMENT_TEMPLATE.md) and the [Module 00 less
 
 ## Resume here
 
-- Current lesson: Lesson 07 and Module 00 guided checkpoints complete on 2026-10-28. Full stop/start and teardown/recreation results, service comparisons and the repeatable checklist are recorded below. The recreated guest is running at `192.168.78.136`; inventory is updated. Source image, SSH key and state are retained. Resume only when the learner requests the Go API stage. Learner requested committing and pushing the completed report and inventory update; no further infrastructure action is authorized by that request.
+- Current lesson: Module 00 complete. Post-module cleanup removed the original reference archive, retired the manual VM/network/disk/seed, and removed their four obsolete source files. Curriculum retained; historical source recoverable at `67c0f75`. Active guest/devbox remain running; active Terraform plan no-change; final retirement comparison preserved all20 containers and unrelated firewall rules. Current active guest address192.168.78.136. Combined cleanup commit/push requested by learner; Go API stage requires a separate request.
+
+### Historical resume notes
+
 - Lesson 04 checkpoint complete on 2026-10-21. Provider-only configuration initialized, formatted, validated, and planned successfully with `No changes.` After explanation, learner correctly identified libvirt as the local connection target and the absence of resource declarations as the reason no infrastructure changes are proposed.
 - Lesson 03 checkpoint complete on 2026-10-19. Guest IPv4 `192.168.77.153/24`, gateway `192.168.77.1`, gateway/external ICMP, DNS, and host-to-guest SSH were verified. Learner reported the Windows-to-guest TCP test failed; raw PowerShell output was not supplied. After guided review, learner identified the Optiplex as the first recipient in a port-forwarding path.
 - No port forwarding, LAN bridging, extra Windows route, or SSH jump-host configuration was implemented. These were conceptual access options for the checkpoint. The lab remains on its private NAT network; the DHCP lease address can change.
@@ -14,7 +17,7 @@ Use [the experiment template](../EXPERIMENT_TEMPLATE.md) and the [Module 00 less
 - Learner correctly explained that shutdown retains the VM definition and disk, while plain undefine removes the definition but retains the disk. Instructor clarified that destroy is an abrupt power-off and disk deletion is a separate explicit action. No teardown was performed for this checkpoint.
 - At pause, instructor verified VM `dsl-lesson02` running with persistent virtio NIC MAC `52:54:00:bf:58:e7`, connected through host tap `vnet0` to active network `dsl-lesson03`/bridge `virbr-dsl03`. VM and network autostart are disabled. Resources were left running as found; no shutdown or teardown was requested or performed.
 - The working disk is `/var/lib/libvirt/images/dsl-lesson02.qcow2`; the login-repair CD is `/var/lib/libvirt/images/dsl-lesson02-seed.iso`, attached at `sda`. Keep both until a deliberate lifecycle decision. Graceful shutdown was already verified before the login-repair boot.
-- Source metadata and the credential-free user-data template are in `infrastructure/lesson02/cloud-init/`. Rendered user-data, seed ISO, and the `lab` account password are in Git-ignored `.local/lesson02-cloud-init/`. Do not commit credentials.
+- Historical Lesson 02 source metadata and the credential-free user-data template were in `infrastructure/lesson02/cloud-init/`; they were removed after retiring the manual setup and remain recoverable in commit `67c0f75`. Rendered user-data, seed ISO, and the `lab` account password are in Git-ignored `.local/lesson02-cloud-init/`. Do not commit credentials.
 - The learner installed the tool and performed VM creation, configuration edits, media attachment, and boots. At explicit request, the instructor prepared cloud-init files and the seed ISO. The instructor has not changed host networking or started/stopped the VM.
 
 Original reviewed creation command (historical; do not rerun against the existing VM):
@@ -518,3 +521,31 @@ Equal firewall snapshots and container state, plus repeated root HTTP responses,
 ## Conclusion
 
 The measured stop/start and full six-resource teardown/recreation succeeded on the prepared host. The recreated guest met resource/bootstrap/access requirements; the unchanged Ansible playbook passed twice without changes; the final Terraform plan was clean; and measured unrelated container/firewall/HTTP baselines were preserved. The learner completed the guided final reflection by identifying reproducibility as essential beyond a successful apply; the instructor connected it to clean recreation, guest behavior and unrelated-service evidence. Module 00 guided checkpoints are complete. This was an instructor-assisted run, including explicitly delegated lifecycle execution, not an unaided learner repetition or a clean-host installation test. Stop before the Go API stage until separately requested. No further teardown, host changes or commit is implied by these results.
+
+
+## Repository maintenance after Module 00
+
+On 2026-10-28, the learner explicitly requested removing the original reference folder. Removed the 12 tracked files under `reference/experiment-00/` after verifying the tree had no untracked/ignored additions. Updated README, roadmap, agent guidance, curriculum overview, and guided-rebuild links to the active implementation and pinned historical commit `67c0f75`. Historical lesson notes above describe what was available at the time and are retained as evidence.
+
+The original source/scripts/reports remain recoverable from Git history; for example, `git show 67c0f75:reference/experiment-00/README.md` reads the historical README. Active infrastructure source, local state/images/keys, and running services were not modified by this cleanup. No archive script or infrastructure command was executed. At that point, archive removal had not been committed or pushed; the later combined cleanup commit was requested after the manual setup retirement.
+
+
+### Retiring the manual lesson guest and network
+
+The learner approved the recommended next cleanup: retire `dsl-lesson02` and `dsl-lesson03`. Before deletion, instructor audited every domain's disk/backing paths and network references. Only that manual guest used `/var/lib/libvirt/images/dsl-lesson02.qcow2`, `/var/lib/libvirt/images/dsl-lesson02-seed.iso` and the `192.168.77.0/24` network. Saved its domain/network XML and active Terraform resource IDs in ignored `.local/manual-lesson-retirement/`. The old guest had one configured CPU, 2048 MiB RAM and a disk reporting 1.44 GiB allocation; this is not a measured change in host free memory/storage.
+
+After graceful shutdown was observed, undefined only the manual domain, deleted exactly its two named volumes through the existing images pool, confirmed no remaining domain referenced the old network and no connection remained, then stopped/undefined only `dsl-lesson03`. The shared images pool was retained. No forced guest stop, broad deletion, helper-policy edit, or unrelated VM operation occurred. Execution/UTC records are saved locally.
+
+Post-cleanup verification: old domain/network and both volume files absent; active `dsl-node-01` and unrelated devbox running; all six Terraform resource IDs identical to pre-cleanup; fresh plan detailed exit0/no changes. Jellyfin302, Immich200, Navidrome302 match immediately before/after. Fresh privileged snapshots could not be captured by the instructor because sudo requires a password. Final firewall/container comparison is pending learner capture against the most recent Lesson07 after-recreate snapshots; no complete post-retirement rule/container preservation claim is made yet.
+
+Manual exercise source folders, obsolete local images/plans and the detailed journal were not included in this scoped runtime retirement. Active lab key/source image/state, current tools and Lesson07 evidence were retained. No commit/push performed.
+
+
+The learner supplied final privileged retirement snapshots. Against the most recent verified Lesson07 after-recreate baseline, normalization of counters/comments/timestamps shows exactly 19 removed IPv4 rules, all scoped to `virbr-dsl03` or `192.168.77.0/24`, with no added rules. The corresponding nftables view agrees; IPv6 is unchanged. All 20 Docker container IDs, names, status strings and port mappings match. The baseline predates the retirement preflight because instructor sudo was unavailable; this comparison is not described as a freshly captured immediate pre/post pair. The scoped runtime cleanup and its measured preservation checks are complete. Raw snapshots, diffs and comparison JSON remain in ignored `.local/manual-lesson-retirement/`. No further deletion, commit or push was performed.
+
+
+### Removing superseded manual exercise source
+
+The learner explicitly requested including `infrastructure/lesson02/` and `infrastructure/lesson03/` in the pending cleanup commit. Removed four tracked files: the manual cloud-init metadata/template, network XML, and MAC-specific networkd file. Inspection found only historical learning-log references; the active Terraform/cloud-init/Ansible implementation does not reference these files. Curriculum Lessons 02 and 03 remain available. Historical procedure entries above retain their original paths as evidence; the source is recoverable at commit `67c0f75`.
+
+The learner requested committing and pushing the combined cleanup: original reference archive removal, retired manual setup evidence, obsolete exercise-source removal, and updated project documentation. Local source images, keys, evidence, tools and active Terraform state remain excluded from the commit. No additional runtime action was performed for these source deletions.

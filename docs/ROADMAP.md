@@ -28,4 +28,6 @@ This is a single application that evolves through **architecture stages**. An ex
 
 ## Current learning objective
 
-Revisit **Experiment 00** interactively, using [the guided rebuild plan](experiments/00-guided-rebuild.md). The original complete implementation and measured report remain available on `main` as a reference. Do not jump to Stage 01 until the learner can explain and reproduce the VM lifecycle.
+**Module 00 is complete.** The [learning run](experiments/00-learning-run.md) records the guided rebuild, lifecycle verification, and limitations. Active infrastructure lives in `infrastructure/`; the original implementation is retained in [Git history at commit `67c0f75`](https://github.com/iPior/distributed-systems-lab/tree/67c0f75/reference/experiment-00).
+
+Next, begin Stage 01 with a focused Go API experiment when the learner requests it. Review the research question and architecture before implementation. The [guided rebuild plan](experiments/00-guided-rebuild.md) remains available for revisiting infrastructure.

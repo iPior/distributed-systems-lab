@@ -11,7 +11,7 @@ Work through one lesson at a time. At every lesson:
 4. **Verify:** Gather command output and check assumptions.
 5. **Reflect:** Note what you learned. Stop before proceeding.
 
-**Safety:** The Optiplex runs unrelated media services. Request explicit approval before installs, host networking changes, VM creation, or destruction. Never clean up outside the project's resources. The original known-good implementation is available in `reference/experiment-00/` if you get stuck; avoid copying it wholesale.
+**Safety:** The Optiplex runs unrelated media services. Request explicit approval before installs, host networking changes, VM creation, or destruction. Never clean up outside the project's resources. The original implementation was removed after the guided rebuild; it remains available as a troubleshooting fallback in [Git history at commit `67c0f75`](https://github.com/iPior/distributed-systems-lab/tree/67c0f75/reference/experiment-00). Avoid copying it wholesale.
 
 ## Lessons
 
