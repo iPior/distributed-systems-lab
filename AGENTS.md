@@ -1,31 +1,21 @@
 # AGENTS.md — Distributed Systems Lab
 
 ## Purpose
+Teach and build a small distributed application through **one concept-driven experiment at a time**. The learner writes and tests each step. Measurements must fit the question; never invent results.
 
-This is a learning project: progressively build a small distributed application and use **focused experiments** to understand its behavior. Each experiment asks one question, tests a hypothesis, and documents actual observations. Don't optimize every stage for throughput; choose measurements that fit the question (latency, correctness, consistency, recovery, etc.). Never invent results.
+## Read before acting
+- `README.md` and `docs/ROADMAP.md`
+- `curriculum/00-infrastructure/README.md` for the current module
+- **Only the current lesson** in `curriculum/00-infrastructure/`
+- `docs/EXPERIMENT_TEMPLATE.md` when documenting results
 
-## Environment
+## Working method
+1. Explain one concept, ask the learner to predict behavior, then propose a small practical task.
+2. Let the learner attempt implementation; review or debug their work. Do not provide a full working solution unless requested.
+3. Verify observable behavior and record real evidence. Stop at each lesson checkpoint. Never automatically advance through multiple lessons.
+4. Keep active infrastructure code in `infrastructure/`. The original agent-built implementation was removed after Module 00; it remains in Git at `67c0f75:reference/experiment-00/`. Consult it only as a troubleshooting fallback, without copying it wholesale or running historical scripts against current resources.
+5. Protect unrelated Optiplex services. Get explicit approval before host installs, network/firewall changes, creating VMs, destructive commands, or disruptive tests. No broad cleanup.
+6. Keep resources isolated and disposable, and source/state/secrets separate. Don't claim an environment check happened unless it did.
 
-- Repo: `ipior/distributed-systems-lab`, hosted at `/opt/distributed-systems-lab` on `optiplex-media-server`.
-- Host: Debian 13, Intel i5-6500 (4 cores), 32 GB RAM, 1 TB SSD; KVM support confirmed.
-- The host already runs important Docker media/homelab services. **Do not modify, disrupt, or clean up unrelated resources.**
-- Intended stack: Terraform + libvirt for disposable VMs, Ansible for configuration, Docker Compose and Go for the application. Later experiments may add HAProxy, Redis, PostgreSQL replicas, RabbitMQ, and fault injection.
-- k6 load tests will run on a separate Windows PC, not on the Optiplex.
-
-## Working rules
-
-1. Work on **one experiment at a time**. Do not implement future stages prematurely.
-2. Keep code and infrastructure simple, readable, reproducible, and version-controlled.
-3. Document each experiment in its own Markdown file: **question, hypothesis, setup, procedure, observations, interpretation, and trade-offs**. Leave results blank until measured.
-4. Change one significant variable at a time where practical; record relevant hardware, resource limits, and test conditions.
-5. Keep lab VMs, networks, disks, and containers isolated and clearly named. Lab infrastructure must be safe to stop, destroy, and rebuild without affecting existing services or deleting the repository.
-6. **Ask before destructive commands, host networking/firewall changes, or disruptive tests.** Never run broad Docker prune or host cleanup commands.
-7. Inspect the repository and current environment before acting. Explain meaningful decisions and report what was actually verified.
-
-## Current focus: Experiment 00 — Reproducible Infrastructure
-
-**Question:** Can we provision, access, stop, destroy, and recreate an isolated Debian VM entirely from code?
-
-Start with a single VM named `dsl-node-01` (1 vCPU, 2 GB RAM, 20 GB thin-provisioned disk). Verify tooling first; do not assume libvirt or Terraform has been installed. Provision with Terraform/libvirt and configure access with Ansible or cloud-init. Document the setup, VM lifecycle, validation, and safe teardown in `docs/experiments/00-reproducible-infrastructure.md`.
-
-**Done when:** the VM can be created, accessed, stopped, destroyed, and recreated without affecting other Optiplex services. Do not deploy the Go API or any distributed components yet.
+## Current focus
+**Module 00 is complete.** Read `docs/experiments/00-learning-run.md` for the current environment, evidence, and limitations. Begin the Go API stage only at the learner's request, with a focused question and a reviewed architecture. The host is a Debian 13 Optiplex (i5-6500, 32 GB RAM) running existing media services. k6 will be run later from a separate Windows desktop.
