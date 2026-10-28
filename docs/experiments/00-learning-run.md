@@ -1,12 +1,12 @@
 # Experiment 00 — Independent learning run
 
-**Status:** Lessons 01 through 06 checkpoints complete as of 2026-10-27. Stop before Lesson 07 until the learner requests it. These are not results from the original agent-built run.
+**Status:** Module 00 guided checkpoints complete: Lessons 01 through 07, completed 2026-10-28. Stop before the Go API stage until requested. These are not results from the original agent-built run.
 
 Use [the experiment template](../EXPERIMENT_TEMPLATE.md) and the [Module 00 lessons](../../curriculum/00-infrastructure/README.md).
 
 ## Resume here
 
-- Current lesson: Lesson 06 checkpoint complete. Learner wrote inventory and Debian-checked guest-only curl playbook, passed syntax/connectivity checks, ran twice with ok3 changed0 unreachable0 failed0, and identified server setup/package management as Ansible responsibilities. Source: infrastructure/ansible/inventory.yaml and playbook.yaml. Last verified guest IP192.168.78.176; strict known-hosts and existing lab key configured. Resume with Lesson07 only on learner request. No teardown, new commit/push, or further configuration changes authorized by checkpoint completion.
+- Current lesson: Lesson 07 and Module 00 guided checkpoints complete on 2026-10-28. Full stop/start and teardown/recreation results, service comparisons and the repeatable checklist are recorded below. The recreated guest is running at `192.168.78.136`; inventory is updated. Source image, SSH key and state are retained. Resume only when the learner requests the Go API stage. Learner requested committing and pushing the completed report and inventory update; no further infrastructure action is authorized by that request.
 - Lesson 04 checkpoint complete on 2026-10-21. Provider-only configuration initialized, formatted, validated, and planned successfully with `No changes.` After explanation, learner correctly identified libvirt as the local connection target and the absence of resource declarations as the reason no infrastructure changes are proposed.
 - Lesson 03 checkpoint complete on 2026-10-19. Guest IPv4 `192.168.77.153/24`, gateway `192.168.77.1`, gateway/external ICMP, DNS, and host-to-guest SSH were verified. Learner reported the Windows-to-guest TCP test failed; raw PowerShell output was not supplied. After guided review, learner identified the Optiplex as the first recipient in a port-forwarding path.
 - No port forwarding, LAN bridging, extra Windows route, or SSH jump-host configuration was implemented. These were conceptual access options for the checkpoint. The lab remains on its private NAT network; the DHCP lease address can change.
@@ -29,10 +29,17 @@ The learner executed this command. The current saved definition additionally con
 Can I independently explain, provision, configure, stop, destroy, and recreate a disposable Debian VM without disrupting existing Optiplex services?
 
 ## Hypothesis
-_To write before executing the experiment._
+Predictions were recorded before their corresponding actions in the lesson procedures. For Lesson 07, the expected outcomes were: graceful shutdown retains the definition and disks; a plan then proposes restoring desired `running = true`; full destroy removes only the six managed resources and retains local inputs; recreation restores the declared guest; media root responses and unrelated firewall/container state remain consistent. The learner initially predicted no post-shutdown Terraform change; that prediction was corrected before the test. These are qualitative expectations, not timing or throughput hypotheses.
 
 ## Environment and controls
-_To record._
+
+- Architecture stage: 00. Infrastructure/Ansible source at the start of Lesson 07: commit `83cee91` on `learn/rebuild-experiment-00`. Terraform/cloud-init/playbook inputs were unchanged for teardown/recreation; only the Ansible inventory address changed afterward to follow DHCP.
+- Host: Debian 13 Optiplex, Intel i5-6500, four logical CPUs, 32 GB RAM per lab specification. It also runs existing Docker/media services, Tailscale, and unrelated `devbox`/manual lesson resources. This was not an idle or dedicated host.
+- Recorded tools: Terraform 1.13.5, libvirt provider 0.8.3 (lock file tracked), libvirt 11.3.0, QEMU 10.0.13, Ansible core 2.19.11 with host Python 3.13.5. These versions come from the recorded inspections, not fresh installs performed during Lesson 07.
+- Guest: Debian 13 cloud image, kernel 6.12.111+deb13-cloud-amd64, one vCPU, 2048 MiB configured RAM, 20 GiB qcow2 guest disk backed by the dedicated 3 GiB managed base. Dedicated pool `dsl-tf00`; NAT network `dsl-tf00-net`, bridge `virbr-tf00`, subnet `192.168.78.0/24`. Autostart off for guest/network; guest desired running=true.
+- Ownership boundary: six Terraform resources (domain, guest disk, managed base, seed, network, pool). Local `.local/debian13.qcow2`, SSH key/known-hosts files, Terraform configuration and local state are separate inputs/records. Raw evidence, images, private keys, plans and state are Git-ignored; only source and summarized evidence are tracked.
+- Prepared-host prerequisites retained across destroy: installed virtualization/Ansible/XML tools; user-local Terraform and `mkisofs` compatibility symlinks; approved lab-path read rule in the virt-aa-helper AppArmor local override. Terraform does not install these. VGA/serial, loopback VNC, and explicit file/qcow2/backing-chain XML are in the rebuilt source. AppArmor remained enforcing during successful boots.
+- Controls: isolated lab names/subnet/storage; exact saved-plan scope checks; separate explicit approvals; graceful shutdown before deletion; unchanged source image checksum; fixed host-local HTTP endpoints; same complete firewall/container snapshot comparisons. Timings are single command/polling observations, not benchmarks. No VM throughput measurement or k6 load test was performed.
 
 ## Procedure
 ### Lesson 01 - Virtualization and isolation
@@ -271,6 +278,77 @@ _To record._
 
 - Learner requested commit/push after completing Lesson06 and asked for Lesson07 duration. Commit scope: single-guest inventory, Debian-checked curl playbook, and learning log; private SSH key/state remain ignored. Instructor normalized Ansible YAML trailing whitespace/final newlines and reran syntax validation. Read Lesson07 to estimate stop/start, lab-only teardown/recreation, host-service safety comparisons, and evidence documentation; no Lesson07 resource actions are authorized or executed by this commit request.
 
+
+### Lesson 07 - Lifecycle, safety, and evidence
+
+- 2026-10-28: Learner explicitly requested beginning Lesson07. Instructor reread AGENTS, README, roadmap, module overview, only current lesson, experiment template, saved progress, and current Terraform declarations. Working tree initially clean. Domain desired running=true/autostart=false; dedicated pool/network and backing disk dependency remain declared. No fresh runtime/resource/host-service check has yet been performed in this lesson.
+- Research question: can the learner stop/start and recreate only the Terraform-owned lab from reviewed configuration, recover guest access/configuration, and gather evidence that unrelated services continue working? Proposed phases: predictions/baseline, approved graceful stop/start, scoped destroy-plan review and separately approved teardown/recreation, guest/Ansible/no-change verification, service comparisons and final evidence review. These are proposed procedures, not observed results or blanket mutation approval.
+- First learner exercise: predict whether graceful shutdown removes definition/disk and what a plan should propose after shutdown with desired running=true; then inspect Terraform state list and libvirt domain state using read-only commands. Preserve Terraform state, local source image, keys, configuration, and unrelated media/devbox/manual-lesson resources. No archive scripts copied or executed.
+
+- Learner correctly predicted that graceful shutdown retains VM definition/disk, but initially predicted no Terraform change afterward. Instructor explained desired running=true versus stopped actual state and expected start proposal; plan itself does not perform the start. Learner supplied baseline state list containing exactly seed/domain/network/pool/base/guest resources and domstate running. This establishes six tracked resources and current runtime only; no fresh no-change plan or service-health baseline yet. Next: learner saves baseline plan, firewall, container, and relevant service evidence before any stop/start approval.
+
+- Learner saved Lesson07 baseline files. Instructor confirmed nonempty plan/firewall/container snapshots: plan-before no changes; containers-before has20 running containers, seven explicitly healthy; iptables216 lines, IPv6tables67, nft380. Parsed services include published Jellyfin8096, Immich2283, Navidrome4533. This captures process/config state, not application behavior. Next small learner exercise: HTTP GET response/status baselines for these three published local endpoints, which test host-to-container access but not remote LAN/Tailscale reachability or full playback/uploads. No lifecycle changes yet.
+
+
+- Learner supplied initial host-local HTTP GET baseline, each with5-second timeout and no redirect following: Jellyfin `http://127.0.0.1:8096/` ->302; Immich `http://127.0.0.1:2283/` ->200; Navidrome `http://127.0.0.1:4533/` ->302. These root-response checks do not prove playback, uploads, authentication, or Windows/LAN access. Repeat identical requests after lifecycle operations.
+- Instructor baseline libvirt inventory: dsl-lesson02, devbox, dsl-node-01 running; default network inactive/persistent/autostartoff; devbox network active/autostarton; dsl-lesson03 and dsl-tf00-net active/autostartoff; pools boot,images,dsl-tf00 active/autostarton. Non-Terraform resources remain outside test scope.
+- Proposed first disruptive test, awaiting explicit approval: gracefully shut down only dsl-node-01, verify domain shutoff plus retained volumes/network/state, preview Terraform desired-running drift without applying, start that same domain, verify guest access/no-change plan and repeat service probes. Preserve source, keys, state, all storage, and unrelated services. No Lesson07 shutdown/start/destroy/recreation has been performed or approved yet.
+
+
+- Learner explicitly approved the dsl-node-01-only stop/start test. Instructor captured UTC events and resource IDs in ignored `.local/lesson07-checks/stopstart.json`, sent graceful shutdown, and observed shut off after4.191seconds (polling observation, not precise guest shutdown duration). No forced stop was used. Domain definition, three volumes, active private network, and all six tracked resource IDs remained; unrelated dsl-lesson02/devbox stayed running.
+- While stopped, saved plan showed exactly `0 add, 1 change, 0 destroy`, solely domain running=false ->true; JSON inspection confirmed no other changed attribute. Plan was not applied. Host-local HTTP probes while stopped still returned Jellyfin302/Immich200/Navidrome302.
+- Instructor started the same domain with virsh under approved scope; start command returned successfully after1.524seconds (not guest-readiness timing). Same domain UUID586a3c1a-b5c3-4de4-aef0-289225397a78 and IP192.168.78.176 verified. Strict known-host SSH succeeded, hostname correct, cloud-init done with errors[] and recoverable_errors{}. Fresh saved restarted plan has all six resources no-op and same IDs; no-change plan verified. Post-restart HTTP probes again match302/200/302. Other VMs remain running. This establishes stop/start preservation and these response checks, not full service functionality or remote-client reachability.
+- Stop/start phase complete. Raw structured records, offline plans, SSH output, and HTTP comparisons are under ignored `.local/lesson07-checks/`; tracked evidence is summarized here. Full firewall/container comparisons remain pending the later teardown/recreation phase. Next learner prediction concerns what a full lab destroy removes versus local source/key/state inputs; no teardown/recreation approval has been given and no destroy command was run.
+
+- Full-destroy prediction: learner selected SSH private key/Terraform configuration as retained. Instructor clarified local downloaded `.local/debian13.qcow2` also remains as a source input; managed guest disk/base volume are distinct Terraform resources slated for deletion. Next learner task is read-only `terraform plan -destroy` review, expected six lab resources only. Preview is not authorization to apply teardown; no destroy/recreation performed or approved.
+
+- Learner supplied full destroy preview with exactly0add/0change/6destroy: domain, seed, private network, dedicated pool, managed base and guest volumes. Instructor saved a fresh destroy plan at ignored `.local/lesson07-checks/destroy.tfplan` and text preview; JSON verified exactly six delete actions, exact expected resource addresses/names/paths/IDs matching prior baseline. Pool volume listing contains only the expected base qcow2, guest qcow2, and seed ISO. No unrelated domain/network/pool appears in the plan.
+- Recorded local source-image SHA256/size (preservation comparison only, not renewed publisher verification), private-key stat metadata without reading key contents, and resource IDs in ignored destroy-scope.json. Saved pre-destroy Terraform state backup locally with mode0600, no state contents printed. Next approval scope is graceful shutdown of dsl-node-01 then apply this exact six-deletion plan; full guest disk contents will be deleted. Local source/key/configuration retained. Recreation requires later plan review/approval. No teardown applied or authorized yet.
+
+
+- Learner explicitly approved graceful shutdown and exact six-resource teardown. Instructor rechecked saved plan and observed graceful shutoff after 3.126 seconds (polling observation). Applied saved destroy plan successfully:0added/0changed/6destroyed; apply command wall time 1.02 seconds for this one run, not a performance benchmark. Execution text/UTC events saved locally. No broad cleanup or unrelated resource operation was run.
+- Post-destroy read-only checks: Terraform state list empty while state file remains; dsl-node-01 absent; dsl-tf00-net absent; pool dsl-tf00 absent; all three expected volume paths and pool directory absent. Source-image SHA256 unchanged; private-key inode/size/mode retained without reading key contents; Terraform configuration retained. Pre-destroy state backup preserved locally but not restored. Unmanaged host prerequisite (helper AppArmor local read rule) remains intentionally; Terraform does not manage host tools/policy.
+- Unrelated dsl-lesson02/devbox domains remain running; default/devbox/dsl-lesson03 networks and boot/images pools remain with baseline states. HTTP probes after teardown match Jellyfin302/Immich200/Navidrome302. This verifies those root responses from host only. Next: learner captures privileged after-destroy firewall/container snapshots for normalized comparison before any recreation approval. No recreation has been approved/performed yet.
+
+- Learner saved privileged post-destroy snapshots and supplied nft display warnings about iptables-nft-managed tables and XT MASQUERADE rendering. Instructor normalized only packet/byte counters and iptables comments/timestamps, then compared complete saved rules: IPv4 iptables removed 19 lab-specific rules and added none; nft removed 19 corresponding lab-specific rules and added none; IPv6 iptables unchanged. No unrelated rule removal or reordering detected. All20 container IDs/names/status strings/port mappings match baseline exactly. Warnings alone were not treated as a reason to modify firewall policy. Raw normalized diffs and machine-readable comparison are in ignored lesson07-checks.
+- Teardown service/config preservation phase verified within stated scope. Next learner task: predict the recreation plan counts with empty managed state and unchanged configuration, then run a normal read-only Terraform plan and review before any creation/network approval. No recreation applied or approved yet.
+
+- Learner supplied recreation preview with6add/0change/0destroy. Instructor saved fresh recreate.tfplan/text preview under ignored lesson07-checks and checked JSON: exactly six expected create actions, domain running=true/autostart=false,1CPU/2048MiB,20GiB guest disk,192.168.78.0/24 network, dedicated pool path, loopback VNC. Managed state remains empty; downloaded image checksum unchanged; mkisofs compatibility link/xsltproc and approved helper read rule exist. Git diff confirms infrastructure sources unchanged since committed Lesson06. No create/apply executed.
+- Next approval scope: create all six lab resources and boot the fresh guest from unchanged configuration. Fresh disk means regenerated guest SSH host keys and DHCP identity; previous known-hosts trust cannot be silently reused or bypassed. Plan to observe first-boot console for trusted hypervisor host-key fingerprint evidence if available, then review/update scoped inventory/known-hosts with actual new address. Reconfiguration/Ansible and final host comparisons remain after boot verification.
+
+
+- Learner explicitly approved recreating all six resources and booting. Instructor rechecked saved plan create-only scope and applied it:6added/0changed/0destroyed, success. Apply command elapsed 2.308 seconds in this one observation (not guest-ready timing or performance benchmark). Creation used unchanged committed infrastructure configuration and retained local source image/tools/helper policy. No archive implementation was copied/run.
+- New domain UUIDbc9dc19c-d81b-4df5-85bf-0a94ac7b2be3, pool UUID05f11a51-e65f-4245-ba81-f68f8eaeb35e, network UUID5a878415-7142-4f15-929f-cad3359ac143; seed ID has new UUID suffix46e30b33-32d8-4482-a7f1-d597ebc64cf9. Guest is running,1CPU/2097152KiB,autostartoff,AppArmor enforcing. New NIC52:54:00:56:8a:8a has DHCP192.168.78.136/24. Fresh Terraform plan detailed-exitcode0 reports no changes.
+- Attached safely to serial console after creation: Debian13 login prompt reached; first-boot host-key output was already past and was NOT captured. Detached without logging in or issuing guest input. Do not claim out-of-band host-key verification from this capture. Next learner SSH connection to new DHCP address uses existing key and known-hosts file with normal first-use prompt, then guest resource/cloud-init checks. Inventory still points to old192.168.78.176 until reviewed update.
+- Immediate post-recreation media HTTP probes still match302/200/302. Existing dsl-lesson02/devbox remain running. Fresh guest SSH/cloud-init/resources, inventory address update, Ansible twice, and final firewall/container comparisons remain pending; no Lesson07 checkpoint completion claimed.
+
+- Learner independently SSH-connected to fresh192.168.78.136 with retained lab private key, accepted new ED25519 host key via normal first-use prompt, fingerprint `SHA256:DpTvDviMG8g9QZxziTBpDmPArsFiky0fHFMcNxw5itc` (different from prior guest). No out-of-band comparison is claimed. Guest evidence: hostname dsl-node-01; cloud-init done/extended done, NoCloud /dev/sr0, errors[]/recoverable_errors{}; nproc1; RAMtotal1.9GiB; vda20G/vda1 19.9G; root df20G with596M used; sudo -n whoami=root. Fresh SSH/bootstrap/resource verification passed. Next: learner exits to host, updates only inventory ansible_host to192.168.78.136, reviews parsed target, and runs unchanged playbook twice with recorded recaps. No new Ansible run yet.
+
+- Learner supplied `ansible-inventory --host dsl-node-01`: new address192.168.78.136, userlab, retained private-key path, IdentitiesOnly and StrictHostKeyChecking=yes with known-hosts file. Instructor source diff confirms only inventory IP changed from192.168.78.176; playbook unchanged. Next learner runs reviewed guest-only playbook twice, capturing both actual recaps; no run yet claimed. Final privileged host snapshots/evidence review remain after these runs.
+
+- Learner supplied both unchanged playbook runs against recreated dsl-node-01 using explicit host limit. Each run: Gathering Facts ok, Debian assertion passed, curl apt task ok; recap ok=3 changed=0 unreachable=0 failed=0 skipped=0 rescued=0 ignored=0. Interpreter discovery uses/usr/bin/python3.13 and only reports advisory. This repeats no-change behavior on the fresh guest; curl was already present and no package installation or induced-drift repair is demonstrated. Next: final privileged firewall/container snapshots, post-Ansible no-change plan and service probes, consolidated evidence, final learner reflection. No additional changes/teardown/commit authorized.
+
+
+- Final host verification: normalized IPv4/IPv6 iptables and nftables snapshots exactly match original baseline; all20 container IDs/names/status/ports match; unrelated dsl-lesson02/devbox remain running; final media HTTP302/200/302 retained. Post-Ansible Terraform plan detailed-exitcode0 reports no changes. Consolidated hypothesis history, environment/controls, repeatable lifecycle checklist, result tables, and limitations added to this report without inventing missing measurements. Technical verification complete; final learner reflection remains before marking Lesson07/Module00 complete. No commit requested or performed.
+
+- Final guided reflection: learner answered that reproducibility is important beyond a successful apply. Instructor affirmed and tied it to clean teardown/rebuild, successful guest bootstrap/access, unchanged playbook/no-change plan and measured unrelated-service preservation. Lesson07 and Module00 guided checkpoints marked complete on2026-10-28. No new stage, provisioning, teardown, host change, commit or push was performed as part of completion. Guest left running; current address192.168.78.136. Independent unaided learner repetition remains outside this measured run.
+
+- Learner requested commit/push of the completed Module 00 report and refreshed inventory address. Instructor reviewed the two-file scope, checked whitespace and Ansible syntax successfully, and confirmed local private key, source image, state backup and live Terraform state remain ignored. No resource operation or Go API implementation is part of this commit.
+
+### Lesson 07 - Repeatable lifecycle checklist
+
+For a future repetition, review current addresses/state and obtain the required approvals again; this checklist does not grant them.
+
+1. Read the committed source and prerequisites. From `infrastructure/terraform`, inspect `terraform state list`, `terraform plan`, libvirt domains/networks/pools and the dedicated pool volumes. Confirm six lab resources and a no-change starting plan; do not adopt or delete unrelated resources.
+2. Save full IPv4/IPv6 iptables, nftables and Docker snapshots under ignored `.local/lesson07-checks/`. Record HTTP root responses for host-local Jellyfin8096, Immich2283 and Navidrome4533 using the same timeout/no-redirect options. Check unrelated VM/network/pool states. Record local source-image checksum and preserve keys/configuration/state.
+3. After stop/start approval, use graceful `virsh shutdown`, wait for `shut off`, and verify definition/volumes/network remain. Run a read-only plan and confirm only running=false ->true. Start the same domain, then verify retained UUID, strict known-host SSH, cloud-init status, no-change plan and unchanged service responses. A command returning is not proof the guest is ready.
+4. Save and inspect `terraform plan -destroy -out=<ignored-plan-path>`. Confirm exactly six expected deletions, dedicated pool contents and no unrelated addresses. Preserve a local state backup as evidence without overwriting active state later.
+5. After explicit teardown approval, gracefully shut down, then apply only the reviewed saved plan. Verify empty managed state, absent domain/network/pool/volumes, retained local source/key/configuration, and intact unrelated resources. Capture after-destroy snapshots; compare expected lab-rule removals and service responses.
+6. Save and review a normal recreation plan: six creates only, using the unchanged configuration. After creation/network approval, apply the exact plan and observe boot. Inspect the new UUID/MAC/DHCP lease rather than reusing the old address blindly.
+7. Establish the fresh guest SSH host key through the chosen trust process and retain strict checking afterward. Verify hostname, cloud-init errors, CPU, RAM, block device/root filesystem capacity and passwordless sudo. Update the inventory to the observed address; do not modify the playbook merely to manufacture changes.
+8. Run the same reviewed playbook twice against only this guest; record both recaps and distinguish already-present state from actual installation. Run a final Terraform plan and require no changes.
+9. Capture final firewall/container snapshots and compare original rule bodies/order/policies, IDs/status/ports while excluding only documented counters/timestamps. Repeat the exact HTTP probes and check unrelated VMs. Record failures and limitations, then complete the learner reflection before advancing.
+
 ## Observations
 ### Lesson 01 - Learner-supplied host inspection
 
@@ -363,6 +441,38 @@ Instructor read the learner-created files under ignored `.local/lesson03-checks/
 - Learner supplied successful SSH-session output: `hostname` -> `dsl-lesson02`, `whoami` -> `lab`, and `SSH_CONNECTION` -> `192.168.77.1 43286 192.168.77.153 22`. This verifies authenticated host-to-guest SSH over the virtual network and distinguishes it from a serial-console session. Host source address is the virtual bridge gateway address, not the physical LAN address. Windows LAN-to-guest reachability remains untested.
 - Instructor requested a Windows PowerShell test: `Test-NetConnection -ComputerName 192.168.77.153 -Port 22 -InformationLevel Detailed`. Learner reported that the test failed; no raw output, Windows source address/interface, or Windows route table was supplied. This is a learner-reported failed direct connection, consistent with private NAT routing and the observed inbound forwarding restrictions. It does not establish the exact failure point or prove that NAT alone caused it. No Windows routes, guest exposure, or firewall rules were changed for this test.
 
+
+### Lesson 07 - Lifecycle results (2026-10-28)
+
+| Check | Observed result |
+| --- | --- |
+| Initial ownership/plan | Six lab resources; guest running; no changes |
+| Graceful stop | Shut off; definition, three volumes, pool/network/state retained |
+| Stopped plan | 0 add, 1 change, 0 destroy; only running=false ->true |
+| Restart | Same UUID/IP; strict SSH and error-free cloud-init; no-change plan |
+| Full teardown | Approved saved plan: 0 add, 0 change, 6 destroyed; state list empty |
+| Retained inputs | Source-image checksum unchanged; private-key inode/size/mode and configuration retained |
+| Unrelated resources | dsl-lesson02/devbox running; their networks and boot/images pools retained |
+| Clean recreation | Approved saved plan: 6 added, 0 changed, 0 destroyed, unchanged Terraform/cloud-init/playbook source |
+| Fresh identity | UUID bc9dc19c-d81b-4df5-85bf-0a94ac7b2be3; MAC52:54:00:56:8a:8a; DHCP192.168.78.136 versus prior192.168.78.176 |
+| Fresh guest | SSH as lab; hostname correct; NoCloud done/errors[]; 1 CPU, 1.9GiB visible RAM, 20G disk/root, sudo returns root |
+| Ansible fresh run 1 | ok3, changed0, unreachable0, failed0 |
+| Ansible fresh run 2 | ok3, changed0, unreachable0, failed0 |
+| Final Terraform plan | No changes; detailed exit code0 after Ansible |
+| Firewall after destroy | Only19 lab-specific IPv4 rules removed; no additions; IPv6 unchanged |
+| Firewall after recreation | Full IPv4/IPv6 iptables and nftables snapshots identical to baseline after normalizing counters/comments/timestamps |
+| Containers | All20 IDs, names, status strings and port mappings match original baseline after destroy and recreation |
+
+HTTP root response comparison (no redirect following, five-second request timeout):
+
+| Service | Before | Guest stopped | After restart | After destroy | After recreate/final |
+| --- | --- | --- | --- | --- | --- |
+| Jellyfin8096 | 302 | 302 | 302 | 302 | 302 |
+| Immich2283 | 200 | 200 | 200 | 200 | 200 |
+| Navidrome4533 | 302 | 302 | 302 | 302 | 302 |
+
+Raw plans, UTC event/command records, source-preservation record, original snapshots, normalized diffs and HTTP JSON remain in ignored `.local/lesson07-checks/`. Guest/Ansible observations above include learner-supplied terminal evidence; instructor-executed checks and prior failures are distinguished in Procedure. Existing state backups are records, not state to restore over the recreated resources.
+
 ## Analysis and limitations
 
 ### Lesson 01 reflection
@@ -378,13 +488,13 @@ The learner identified the shared physical failure domain: "because if the optip
 
 ### Lesson 02 checkpoint reflection
 
-The learner initially confused shutdown and deletion. After reviewing the command roles, the learner correctly stated: "the vm definition and the disk, after undefine the disk remains but the definition doesnt". This completes the conceptual checkpoint: stopping execution, removing the persistent definition, and deleting storage are separate operations. Actual disk deletion and full teardown/recreation remain untested in this learning run. No VM changes or commits accompanied checkpoint completion.
+The learner initially confused shutdown and deletion. After reviewing the command roles, the learner correctly stated: "the vm definition and the disk, after undefine the disk remains but the definition doesnt". This completes the conceptual checkpoint: stopping execution, removing the persistent definition, and deleting storage are separate operations. At this Lesson 02 checkpoint, actual disk deletion and full teardown/recreation were untested; later Lesson 07 results are recorded separately. No VM changes or commits accompanied checkpoint completion.
 
 ### Lesson 03 checkpoint reflection
 
 The learner initially associated private NAT reachability with firewall permissions alone and later conflated IP routing with an SSH jump host. Guided review distinguished the host's direct guest-subnet connection from Windows LAN access, and separated three approaches: port forwarding through the host's LAN address, routing to the guest address with appropriate forwarding policy, and placing the guest on the physical LAN through bridging. An SSH jump host is a separate SSH-mediated access technique.
 
-For a hypothetical future API port-forward example (`192.168.2.103:8080` to `192.168.77.153:8080`), the learner first selected the guest address, then correctly identified the Optiplex as the initial recipient after the distinction was explained. This completes the guided conceptual checkpoint. No forwarding rule or API was created. Lesson 04 has not started.
+For a hypothetical future API port-forward example (`192.168.2.103:8080` to `192.168.77.153:8080`), the learner first selected the guest address, then correctly identified the Optiplex as the initial recipient after the distinction was explained. This completes the guided conceptual checkpoint. No forwarding rule or API was created. Lesson 04 had not started at that checkpoint.
 
 Verified Lesson 03 outcomes are DHCP address/default-route assignment, gateway and external IPv4 ICMP replies, hostname resolution, authenticated host-to-guest SSH, and a learner-reported failed direct Windows connection. Network activation retained original firewall rule bodies/order and the captured Docker IDs, port mappings, and health states. Windows failure-point analysis, application-level service health, full teardown/recreation, and durable DHCP addressing were not established by these checks.
 
@@ -392,7 +502,19 @@ Verified Lesson 03 outcomes are DHCP address/default-route assignment, gateway a
 
 Learner correctly predicted new resource additions and no infrastructure changes for comment-only edits, and understood that deleting state does not delete actual infrastructure. During guided review, instructor distinguished initialization/provider installation from planning infrastructure actions, and provider dependency locking from infrastructure state. The learner requested clarification of `qemu:///system`; instructor explained the local system-wide libvirt connection and QEMU/KVM driver. Learner then correctly completed the checkpoint with "libvirt, resources": the provider connects to libvirt on the Optiplex, and the current configuration proposes no changes because it declares no resources.
 
-Verified lesson outcomes: Terraform core 1.13.5 and libvirt provider 0.8.3 configured, provider initialized and lock file generated, formatting completed without reported changes, validation successful, and plan reporting no changes. No Terraform resource lifecycle, real-resource connection operation, import, state deletion, or apply was tested. Existing manually created lab resources were not adopted. Lesson 05 remains unstarted.
+Verified lesson outcomes: Terraform core 1.13.5 and libvirt provider 0.8.3 configured, provider initialized and lock file generated, formatting completed without reported changes, validation successful, and plan reporting no changes. No Terraform resource lifecycle, real-resource connection operation, import, state deletion, or apply was tested. Existing manually created lab resources were not adopted. Lesson 05 was unstarted at that checkpoint; subsequent results are recorded separately.
+
+
+### Lessons 05 through 07 - Reproducibility findings and limits
+
+The observed full deletion and fresh creation establish that this configuration can reproduce the declared guest on this prepared Optiplex. The missing-package path was not tested: both old and recreated guests already satisfied the curl task, and all recorded playbook runs changed nothing. Do not describe this as Ansible installing curl or repairing introduced drift.
+
+The first staged build required troubleshooting: explicit loopback VNC instead of implicit unsupported SPICE; a user-local ISO-builder command; backing-file security-rule generation; provider readback normalization; and a corrected expectation that running=false prevents startup during creation. The final unchanged configuration recreated successfully without repeating those source edits. Host tools and the approved AppArmor helper override remained present, so a clean OS or another machine still needs prerequisite preparation. The helper read rule alone did not fix the original access error; the successful configuration also declares file attachment and the backing chain.
+
+A new DHCP address required an inventory edit. Host SSH keys regenerated with the fresh disk; the learner accepted the new key using trust on first use, not a claimed independent console fingerprint comparison. Future automation needs an explicit address-discovery and host-key trust process rather than disabled checking. Private NAT is not a blanket block on guest-initiated access to the home LAN, and multiple guests still share the Optiplex failure domain.
+
+Equal firewall snapshots and container state, plus repeated root HTTP responses, support preservation of the measured paths. They do not prove complete media functionality, streaming/uploads, authenticated workflows, DNS/VPN behavior or remote Windows/LAN reachability. No forced outage, host failure, load test or throughput conclusion is included. This was one controlled lifecycle repetition, so reliability over many cycles is not established.
 
 ## Conclusion
-_To complete after testing._
+
+The measured stop/start and full six-resource teardown/recreation succeeded on the prepared host. The recreated guest met resource/bootstrap/access requirements; the unchanged Ansible playbook passed twice without changes; the final Terraform plan was clean; and measured unrelated container/firewall/HTTP baselines were preserved. The learner completed the guided final reflection by identifying reproducibility as essential beyond a successful apply; the instructor connected it to clean recreation, guest behavior and unrelated-service evidence. Module 00 guided checkpoints are complete. This was an instructor-assisted run, including explicitly delegated lifecycle execution, not an unaided learner repetition or a clean-host installation test. Stop before the Go API stage until separately requested. No further teardown, host changes or commit is implied by these results.
