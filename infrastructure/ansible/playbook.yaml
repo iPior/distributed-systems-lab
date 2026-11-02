@@ -1,0 +1,15 @@
+- name: Configure the lab guest
+  hosts: lab
+  become: true
+
+  tasks:
+    - name: Verify the guest is Debian
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Debian'
+
+    - name: Ensure curl is installed
+      ansible.builtin.apt:
+        name: curl
+        state: present
+        cache_valid_time: 3600

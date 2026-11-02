@@ -1,37 +1,21 @@
 # Distributed Systems Lab
 
-Controlled experiments for learning distributed systems. Current scope:
-[Experiment 00: Reproducible Infrastructure](docs/experiments/00-reproducible-infrastructure.md).
+Learn distributed systems by **building one small application in stages** and running focused experiments. Each experiment begins with a research question, a prediction, a controlled procedure, and real evidence. We examine correctness, consistency, resilience, latency, or throughput according to the concept being studied.
 
-One disposable Debian 13 VM, managed by Terraform/libvirt and configured by
-Ansible. No application components yet.
+- [Roadmap](docs/ROADMAP.md)
+- [Experiment template](docs/EXPERIMENT_TEMPLATE.md)
+- [Module 00: Infrastructure](curriculum/00-infrastructure/README.md)
 
-Experiment 00 is complete. Creation, SSH, configuration, stop/start, teardown,
-and clean recreation were verified, with existing service checks passing.
-The lab VM, disks, storage pool, and NAT network have been destroyed for now.
-Installed tools, cached images, and the SSH key are retained for recreation.
+## Current status: Module 00 complete
 
-The [host package ledger](docs/experiments/00-host-packages.md) records all 84
-added APT packages and their versions, plus the separate Terraform installation.
+The guided infrastructure rebuild and lifecycle validation are complete. The active implementation lives in [`infrastructure/`](infrastructure/), with measured results and a repeatable checklist in [the learning run](docs/experiments/00-learning-run.md).
 
-Read the experiment document for host prerequisites, approval boundaries,
-and verification. To recreate after reviewing and approving NAT creation:
+The original agent-built implementation was removed from the working tree after completing Module 00. Its source, scripts, and historical reports remain available in [Git history at commit `67c0f75`](https://github.com/iPior/distributed-systems-lab/tree/67c0f75/reference/experiment-00). Those results are separate from the new learning run.
 
-```sh
-scripts/lab prepare
-scripts/lab validate
-scripts/lab plan
-scripts/lab provision
-scripts/lab configure
-scripts/lab ssh
-```
+The [seven-lesson curriculum](curriculum/00-infrastructure/README.md) remains available for another guided rebuild. Continue one lesson or experiment at a time, with predictions, learner-written steps, and observed evidence. Begin the Go API stage only when requested.
 
-To stop and restart the existing VM:
+The Optiplex runs unrelated Docker services: keep lab networks, disks, and VM resources isolated; require approval for changes that could affect the host.
 
-```sh
-scripts/lab stop
-scripts/lab start
-```
+## Future direction
 
-`scripts/lab destroy` removes the VM, its managed disks, pool, and NAT network.
-It requires explicit approval and Terraform's interactive confirmation.
+After mastering VM provisioning, gradually introduce a Go API, HAProxy and replicas, Redis sessions, PostgreSQL primary and read replicas, caching and invalidation, RabbitMQ workers, and network fault injection. Every component must support a specific learning question.
