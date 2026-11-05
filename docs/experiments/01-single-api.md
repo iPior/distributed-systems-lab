@@ -1,6 +1,6 @@
 # Experiment 01: A single Go HTTP API
 
-**Status:** paused at learner health-handler exercise, 2026-11-04
+**Status:** paused before formatting, build, and HTTP verification, 2026-11-05
 
 **Architecture stage:** 01
 
@@ -10,8 +10,9 @@
 
 - Module 00 is complete. Stage 01 was requested on 2026-10-28.
 - Read repository guidance, README, roadmap, Module 00 overview, prior learning-run evidence, and experiment template. Available curriculum covers only Module 00; no Stage 01 curriculum exists yet.
-- Paused at the learner's request on 2026-11-04. `api/go.mod` has the reviewed module path and `go 1.24.0`; its final newline is now present. `api/main.go` contains `package main` and the empty `healthz` handler scaffold. It has no imports, response implementation, routing, or `main` function and is intentionally incomplete. No Go validation, build, or HTTP test has run.
-- Resume with the unanswered prediction: why must `Content-Type` be set before writing the response body? Then let the learner implement only the successful health response with HTTP 200, `Content-Type: application/json`, and JSON fields `status: "ok"`, `instance: "dsl-node-01"`. Review before introducing routing or server startup.
+- Continued on `learn/module-01-go-api`, branched from `927360b`; `learn/rebuild-experiment-00` is retained as the Module 00 legacy branch. Paused on 2026-11-05 because the learner cannot currently access the guest from their personal device.
+- Learner implemented the JSON health response, encoding-error logging, `GET /healthz` route, and a loopback listener at `127.0.0.1:8080` with server-error logging in `api/main.go`. Source review completed; formatting, Go validation/build, deployment, and HTTP checks have not run.
+- Resume by ensuring the guest has the latest `api/` source, then run `gofmt -w main.go` and `go build -o health-api .` from its API directory. Review the outcome before starting the server. The learner correctly predicted that a guest-loopback listener cannot accept an Optiplex request addressed to the guest's private IP. Verify that prediction with bounded requests after a successful build; do not change the binding yet.
 - Authoritative source lives in repository `api/`; the guest will receive a working copy for builds. Recheck the guest's state and DHCP address before reconnecting after the break. Do not assume that the Go installation or unfinished source has been automated through Ansible.
 - Discussed progression: this endpoint belongs to the API we will grow. Later proposed experiments cover service supervision, a small application feature, and baseline measurement before replicas. The application domain and those later experiments remain undecided; they are not implementation authorization.
 - Repository inspection confirmed the expected branch, latest commit `ef28b24`, and an initially clean working tree. No live infrastructure check or guest connection was performed.
@@ -86,6 +87,8 @@ Learner corrected the module file; instructor directly confirmed `module github.
 
 At the pause, instructor inspected the learner's unfinished `api/main.go` and confirmed the scaffold only. The learner also added the final newline to `go.mod`. The learner requested committing and pushing this learning checkpoint. No handler implementation, infrastructure mutation, or guest shutdown is included in that request.
 
+On 2026-11-05, instructor reviewed the learner's completed handler and server wiring in repository source. The handler sets the JSON content type before committing HTTP 200, encodes the two string fields, and logs encoding errors. `main` registers `GET /healthz` on a dedicated mux and listens on guest loopback, logging a fatal server error if the listener returns. Go's GET pattern also accepts HEAD; unknown-path and unsupported-method behavior remains unverified. Learner correctly explained why the private guest IP would not reach a loopback-only listener. No guest connection, formatting command, build, process startup, or HTTP probe was performed in this session. Learner requested committing and pushing this checkpoint.
+
 ## Analysis
 
 Pending real evidence.
@@ -96,4 +99,4 @@ A stateless endpoint isolates HTTP behavior and network reachability. It cannot 
 
 ## Conclusion and next question
 
-Initial scope agreed on 2026-11-04. Guest discovery and learner-reported Go availability are recorded; module source is reviewed. Paused before implementing the health response. The header-order prediction, handler implementation, build, HTTP verification, and final reflection remain pending. No Stage 01 API runtime behavior has been measured.
+Initial scope agreed on 2026-11-04. Guest discovery and learner-reported Go availability are recorded. Handler and loopback server source were reviewed on 2026-11-05; formatting, build, HTTP verification, and final reflection remain pending. No Stage 01 API runtime behavior has been measured.
