@@ -1,6 +1,6 @@
 # Experiment 01d: Application state in one Go process
 
-**Status:** POST source checkpoint saved; GET implementation and all runtime verification pending
+**Status:** paused after POST/GET source and test authoring; formatting, build, test execution, and deployment pending
 
 **Architecture stage:** 01
 
@@ -10,7 +10,9 @@
 
 - Completed: health endpoint and binding experiment, guest systemd supervision, and repeatable Ansible artifact deployment. See Experiments [01](01-single-api.md), [01b](01b-service-supervision.md), and [01c](01c-ansible-deployment.md).
 - Learner implemented `api/tasks.go`: task representation, initialized map and ID counter, mutex-protected creation, and the POST handler. `api/main.go` creates one shared store and registers `POST /tasks`. Source reviewed only; formatting, build, tests, and deployment remain pending because the learner is working from another machine without guest access.
-- Next: begin GET incrementally with a mutex-protected store lookup returning `(Task, bool)`, then review ID parsing, missing-task behavior, response encoding, and route wiring. Do not provide a complete solution unless requested.
+- POST source checkpoint: `8146918`. Learner subsequently implemented mutex-protected GET lookup, positive-integer ID validation, missing-task handling, JSON response/error logging, and `GET /tasks/{id}` routing against the same shared store. Source reviewed only.
+- Tests authored in `api/tasks_test.go`: store creation/lookup and missing ID; POST success/status/header/body/storage; rejected POST inputs without storing tasks or consuming IDs; GET success and missing/invalid/overflowing IDs through a test mux. Learner wrote the initial store and POST success tests; instructor added rejected-input and GET tests at the learner's request. None have run.
+- Resume with guest address/identity discovery and source transfer, then run from the guest API directory: `gofmt -w main.go tasks.go tasks_test.go`, `go test ./...`, `go test -race ./...`, and `go build -o health-api .`. Review actual outputs before updating the controller artifact or deploying. Race-detector execution may require additional guest toolchain prerequisites; inspect any failure before installing anything. Current tests are sequential and do not establish concurrent safety by themselves. Use package builds (`.`), not `main.go` alone, because the implementation now spans files.
 - Learner predicted tasks would not survive restart. Instructor clarified process-local RAM is not automatically persisted; requesting the old ID before creating another task should return 404. This remains an untested prediction.
 - Last observed guest: `dsl-node-01`, private IP `192.168.78.136`, Go 1.24.4, Debian 13. Rediscover its address and verify identity before reconnecting after the break.
 - Last observed service: `dsl-api.service`, active/running, PID 22632, InvocationID `b84a44dd5e274fcdbdc544844a8f2364`, Description `Distributed Systems Lab HTTP API`; Optiplex health GET returned HTTP 200. These are Experiment 01c observations, not fresh pause-time health checks.
@@ -40,7 +42,8 @@ Optiplex HTTP client -> existing guest:8080 -> one Go API process
 - Reuse the current VM, systemd service, listener, and deployment playbook.
 - Keep `GET /healthz` available with its existing response contract.
 - Smallest proposed feature: `POST /tasks` accepts a title and returns a generated ID with HTTP 201; `GET /tasks/{id}` returns that task with HTTP 200 or a missing-task response with HTTP 404.
-- Reviewed POST contract: request `{"title":"Learn Go"}`; response HTTP 201 with JSON `{"id":1,"title":"Learn Go"}`. Titles are trimmed; missing/blank titles, failed JSON decoding, and extra JSON/trailing garbage receive HTTP 400 via `http.Error` (plain text). IDs start at 1 and increment within the process. Unknown fields are currently ignored; request media-type enforcement and body-size limits are not implemented. GET ID parsing and exact error responses remain to be reviewed.
+- Reviewed POST contract: request `{"title":"Learn Go"}`; response HTTP 201 with JSON `{"id":1,"title":"Learn Go"}`. Titles are trimmed; missing/blank titles, failed JSON decoding, and extra JSON/trailing garbage receive HTTP 400 via `http.Error` (plain text). IDs start at 1 and increment within the process. Unknown fields are currently ignored; request media-type enforcement and body-size limits are not implemented.
+- Reviewed GET behavior: `strconv.Atoi` parses the path ID; failed parsing (including overflow) or non-positive IDs return HTTP 400 with `invalid id`; missing positive IDs return HTTP 404 with `task not found`. Errors use `http.Error` plain-text responses with a trailing newline. Found tasks return HTTP 200 with JSON ID/title. The same mutex protects lookup and creation; lookup returns a task value, so response encoding happens after releasing the lock.
 - Share one in-memory store across handlers and synchronize concurrent access. Go HTTP handlers can execute concurrently; review both the map and ID allocation rather than assuming sequential requests.
 - Keep the executable fixed during the restart/state experiment. Record source revision, artifact checksum, deployed service identity, and requests/results. Test the old ID after restart before creating another task, to avoid confusing ID reuse with retained data.
 - Persistence and multiple API processes are later architecture stages. This experiment does not require a new VM or host/network changes.
@@ -62,7 +65,7 @@ Proposed checkpoints, one at a time:
 
 ## Analysis
 
-POST source reviewed; GET implementation and runtime evidence remain pending.
+POST and GET source and authored tests reviewed; runtime evidence remains pending. No tests, builds, guest probes, deployment, or restart experiment were executed during this source-only work. Formatting is still pending. Learner requested committing and pushing all current source/test work before resuming from a device with guest access.
 
 ## Trade-offs and limitations
 
@@ -70,4 +73,4 @@ One process and an in-memory store isolate state lifetime without database or re
 
 ## Conclusion and next question
 
-POST source checkpoint complete, without build or runtime verification. Next exercise is synchronized GET lookup, followed by incremental HTTP handling. Stage 01 remains in progress.
+POST/GET source and test-authoring checkpoint complete, without build or runtime verification. Resume with formatting, test execution, and build; only then review artifact deployment and the controlled restart/state experiment. Stage 01 remains in progress.

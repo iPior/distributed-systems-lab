@@ -26,6 +26,7 @@ func main() {
 
     store := newTaskStore()
 	mux.HandleFunc("POST /tasks", store.createTask)
+    mux.HandleFunc("GET /tasks/{id}", store.getTask)
 	
     err := http.ListenAndServe("0.0.0.0:8080", mux)
 

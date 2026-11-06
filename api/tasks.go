@@ -7,6 +7,7 @@ import (
 	"strings"
 	"log"
 	"io"
+	"strconv"
 )
 
 type Task struct {
@@ -66,6 +67,39 @@ func (s *taskStore) createTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
+	err = json.NewEncoder(w).Encode(task)
+	if err != nil {
+		log.Printf("write task response: %v", err)
+		return
+	}
+}
+
+func (s *taskStore) get(id int) (Task, bool) {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    task, found := s.tasks[id]
+    return task, found
+}
+
+func (s *taskStore) getTask(w http.ResponseWriter, r *http.Request) {
+    rawID := r.PathValue("id")
+
+	id, err := strconv.Atoi(rawID)
+
+	if err != nil || id <=0 {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	task, found := s.get(id)
+	if !found {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	
 	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
 		log.Printf("write task response: %v", err)
