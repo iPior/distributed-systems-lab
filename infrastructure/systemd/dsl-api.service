@@ -1,0 +1,6 @@
+[Unit]
+Description=Distributed Systems Lab Go API
+
+[Service]
+User=lab
+ExecStart=/opt/dsl-api/health-api
