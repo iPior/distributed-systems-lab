@@ -1,6 +1,6 @@
 # Experiment 01d: Application state in one Go process
 
-**Status:** paused at learner request; proposed scope recorded, prediction pending
+**Status:** POST source checkpoint saved; GET implementation and all runtime verification pending
 
 **Architecture stage:** 01
 
@@ -9,14 +9,14 @@
 ## Resume here
 
 - Completed: health endpoint and binding experiment, guest systemd supervision, and repeatable Ansible artifact deployment. See Experiments [01](01-single-api.md), [01b](01b-service-supervision.md), and [01c](01c-ansible-deployment.md).
-- Next proposed feature: create and retrieve tasks using process-local memory. No task API implementation has begun.
-- Resume by reviewing this research question and architecture, collecting the unanswered prediction below, and agreeing the precise HTTP contract. Then give the learner one small implementation exercise. Do not provide a complete solution unless requested.
-- Pending prediction: if we create a task, restart the API service, and request the same ID, what should happen, and why?
+- Learner implemented `api/tasks.go`: task representation, initialized map and ID counter, mutex-protected creation, and the POST handler. `api/main.go` creates one shared store and registers `POST /tasks`. Source reviewed only; formatting, build, tests, and deployment remain pending because the learner is working from another machine without guest access.
+- Next: begin GET incrementally with a mutex-protected store lookup returning `(Task, bool)`, then review ID parsing, missing-task behavior, response encoding, and route wiring. Do not provide a complete solution unless requested.
+- Learner predicted tasks would not survive restart. Instructor clarified process-local RAM is not automatically persisted; requesting the old ID before creating another task should return 404. This remains an untested prediction.
 - Last observed guest: `dsl-node-01`, private IP `192.168.78.136`, Go 1.24.4, Debian 13. Rediscover its address and verify identity before reconnecting after the break.
 - Last observed service: `dsl-api.service`, active/running, PID 22632, InvocationID `b84a44dd5e274fcdbdc544844a8f2364`, Description `Distributed Systems Lab HTTP API`; Optiplex health GET returned HTTP 200. These are Experiment 01c observations, not fresh pause-time health checks.
 - Repository source is in `api/` on the Optiplex. Build tooling is in the guest. Current ignored controller artifact is `.local/artifacts/dsl-api/health-api`, SHA-256 `8f9549d822a09b3afadf6a24ed8d59d0a662fdda16c1e3bfb2bd5951fbe830a5`; it still contains only the health API. Ansible deploys that artifact rather than compiling source.
 - Unit source: `infrastructure/systemd/dsl-api.service`; deployment entry point: `infrastructure/ansible/deploy-api.yaml`; guest executable: `/opt/dsl-api/health-api`. A source edit requires a verified build, controller-artifact update, and deployment before it affects the running API.
-- Service is left in its last observed running state. No task implementation, guest restart, new deployment, or runtime test is included in this pause/documentation request.
+- No live guest checks or service changes were performed during this source-only session. The last deployed artifact still contains only the health API.
 
 ## Concept and research question
 
@@ -26,7 +26,7 @@ The task resource gives the application useful state to investigate later with r
 
 ## Hypothesis
 
-**Pending learner prediction.** Ask what a GET for a previously created task should return after an API process restart. Record the learner's answer before testing.
+Learner predicted tasks would not survive restart because no persistent storage exists. Instructor clarified that process-local memory is discarded on process exit; the proposed old-ID GET should return 404 after restart, before any new task is created. Not yet tested.
 
 ## Architecture and controls
 
@@ -40,7 +40,7 @@ Optiplex HTTP client -> existing guest:8080 -> one Go API process
 - Reuse the current VM, systemd service, listener, and deployment playbook.
 - Keep `GET /healthz` available with its existing response contract.
 - Smallest proposed feature: `POST /tasks` accepts a title and returns a generated ID with HTTP 201; `GET /tasks/{id}` returns that task with HTTP 200 or a missing-task response with HTTP 404.
-- Review exact request/response JSON, invalid-input behavior, and ID-generation/lifetime rules before coding. These details are not yet agreed. Expected validation failures should have explicit HTTP responses.
+- Reviewed POST contract: request `{"title":"Learn Go"}`; response HTTP 201 with JSON `{"id":1,"title":"Learn Go"}`. Titles are trimmed; missing/blank titles, failed JSON decoding, and extra JSON/trailing garbage receive HTTP 400 via `http.Error` (plain text). IDs start at 1 and increment within the process. Unknown fields are currently ignored; request media-type enforcement and body-size limits are not implemented. GET ID parsing and exact error responses remain to be reviewed.
 - Share one in-memory store across handlers and synchronize concurrent access. Go HTTP handlers can execute concurrently; review both the map and ID allocation rather than assuming sequential requests.
 - Keep the executable fixed during the restart/state experiment. Record source revision, artifact checksum, deployed service identity, and requests/results. Test the old ID after restart before creating another task, to avoid confusing ID reuse with retained data.
 - Persistence and multiple API processes are later architecture stages. This experiment does not require a new VM or host/network changes.
@@ -58,11 +58,11 @@ Proposed checkpoints, one at a time:
 
 ## Observations and evidence
 
-**Not yet measured.** Only this proposed scope and resume notes have been recorded. No task has been created and no restart prediction has been supplied.
+**Runtime behavior not yet measured.** On 2026-11-06, instructor reviewed learner-written POST source. Creation locks around ID allocation, insertion, and counter increment. Handler validation occurs before insertion; response headers precede HTTP 201 and JSON encoding; encoding failures are logged rather than attempting to replace a committed status. One shared store is wired in `main`. Learner initially attributed unique concurrent IDs to memory allocation; instructor explained mutex serialization and the need to protect future map reads with the same lock. Learner acknowledged the explanation. No formatting command, build, test, guest connection, task creation request, deployment, or restart check has run in this session. Learner requested saving this checkpoint before beginning GET.
 
 ## Analysis
 
-Pending implementation and real evidence.
+POST source reviewed; GET implementation and runtime evidence remain pending.
 
 ## Trade-offs and limitations
 
@@ -70,4 +70,4 @@ One process and an in-memory store isolate state lifetime without database or re
 
 ## Conclusion and next question
 
-Paused before implementation. Resume with the pending prediction and reviewed HTTP contract. Stage 01 remains in progress.
+POST source checkpoint complete, without build or runtime verification. Next exercise is synchronized GET lookup, followed by incremental HTTP handling. Stage 01 remains in progress.

@@ -23,7 +23,11 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthz)
-	err := http.ListenAndServe("0.0.0.0:8080", mux)
+
+    store := newTaskStore()
+	mux.HandleFunc("POST /tasks", store.createTask)
+	
+    err := http.ListenAndServe("0.0.0.0:8080", mux)
 
 	if err != nil {
 		log.Fatalf("server failed: %v", err)
