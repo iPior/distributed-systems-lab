@@ -1,5 +1,5 @@
 [Unit]
-Description=Distributed Systems Lab Go API
+Description=Distributed Systems Lab HTTP API
 
 [Service]
 User=lab
