@@ -30,4 +30,6 @@ This is a single application that evolves through **architecture stages**. An ex
 
 **Module 00 is complete.** The [learning run](experiments/00-learning-run.md) records the guided rebuild, lifecycle verification, and limitations. Active infrastructure lives in `infrastructure/`; the original implementation is retained in [Git history at commit `67c0f75`](https://github.com/iPior/distributed-systems-lab/tree/67c0f75/reference/experiment-00).
 
-Next, begin Stage 01 with a focused Go API experiment when the learner requests it. Review the research question and architecture before implementation. The [guided rebuild plan](experiments/00-guided-rebuild.md) remains available for revisiting infrastructure.
+**Stage 01 is in progress, paused at the learner's request.** Completed experiments cover [HTTP correctness and listener binding](experiments/01-single-api.md), [systemd supervision](experiments/01b-service-supervision.md), and [repeatable Ansible artifact deployment](experiments/01c-ansible-deployment.md). Performance measurement and the full stage are not complete.
+
+Next proposed experiment: [task creation/retrieval with process-local state](experiments/01d-in-memory-tasks.md). Resume by collecting the pending restart prediction and reviewing the HTTP contract/architecture before implementation. The [guided rebuild plan](experiments/00-guided-rebuild.md) remains available for revisiting infrastructure.
