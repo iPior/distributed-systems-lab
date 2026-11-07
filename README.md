@@ -6,9 +6,9 @@ Learn distributed systems by **building one small application in stages** and ru
 - [Experiment template](docs/EXPERIMENT_TEMPLATE.md)
 - [Module 00: Infrastructure](curriculum/00-infrastructure/README.md)
 
-## Current status: Stage 01 in progress, paused
+## Current status: Stage 01 in progress
 
-The Go health API, [systemd supervision experiment](docs/experiments/01b-service-supervision.md), and [Ansible deployment experiment](docs/experiments/01c-ansible-deployment.md) are complete. Task creation/retrieval in memory and tests have been authored and source-reviewed, but not built, executed, or deployed. Resume from [Experiment 01d](docs/experiments/01d-in-memory-tasks.md) with formatting, tests, and build once guest access is available; the restart/state experiment remains pending.
+The Go health API, [systemd supervision experiment](docs/experiments/01b-service-supervision.md), [Ansible deployment experiment](docs/experiments/01c-ansible-deployment.md), and [in-memory task experiment](docs/experiments/01d-in-memory-tasks.md) checkpoints are complete. Task tests and executable deployment passed; the old task returned 404 after a controlled restart with an unchanged executable. Stop at this checkpoint and agree the next experiment before advancing. Performance measurement remains pending.
 
 The guided infrastructure rebuild and lifecycle validation are complete. The active implementation lives in [`infrastructure/`](infrastructure/), with measured results and a repeatable checklist in [the learning run](docs/experiments/00-learning-run.md).
 
