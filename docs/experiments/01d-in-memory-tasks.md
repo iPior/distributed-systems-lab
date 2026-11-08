@@ -9,7 +9,7 @@
 ## Resume here
 
 - Checkpoint complete on 2026-11-07. Source checkpoint `7e47027` was transferred to guest `~/dsl-api-7e47027`, formatted, tested, built, copied to the controller artifact, and deployed by the learner. Repository source formatting has not been synchronized back from the guest.
-- Ordinary and race-enabled tests passed. Current tests are sequential; no deliberate concurrent store-access test was executed.
+- Ordinary and race-enabled tests passed for the restart checkpoint. A subsequent concurrent-creation test also passed 20 race-enabled runs; see the follow-up evidence below.
 - POST created task 1; GET retrieved it. After a controlled service restart with an unchanged executable, health returned 200 and GET of the old ID returned 404 before any new creation. This supports the recorded prediction of process-local state loss.
 - Guest: `dsl-node-01`, private IP `192.168.78.136`, Go 1.24.4, Debian 13. Rediscover address and verify identity after a break.
 - Last learner-supplied service state: active/running, PID 27439, InvocationID `d48ba32e6aed4185aea429563bc3bc67`.
@@ -84,13 +84,30 @@ Instructor read-only discovery confirmed the existing libvirt domain running, UU
 
 Learner attributed potential ID reuse to the restart. Instructor clarified that a new process initializes an empty map and `nextID = 1`; reuse of an ID is not retention of the original task. No post-restart task creation was requested or observed.
 
+
+### Follow-up: concurrent task creation (2026-11-08)
+
+Research question: can 10 goroutines create tasks in one shared store without duplicate IDs or overwritten tasks? Learner predicted that removing synchronization could allow data to be overwritten. Instructor explained duplicate ID allocation and unsafe concurrent map writes. The mutex remained enabled throughout the observed test; no unsynchronized variant was run.
+
+At the learner's explicit request, instructor added `TestConcurrentCreateTasks` to `api/tasks_test.go`. A shared start channel releases 10 workers; each saves the returned task into a separate slice element. A `sync.WaitGroup` waits for completion before assertions check IDs in 1..10, uniqueness, expected titles, successful retrieval, and stored count 10. Retrieval occurs after all creators finish, so this does not exercise concurrent creation and lookup.
+
+Learner received instructions to transfer the updated test into guest `~/dsl-api-7e47027`, format it, and run:
+
+```sh
+CGO_ENABLED=1 go test -race -run '^TestConcurrentCreateTasks$' -count=20 .
+```
+
+Learner supplied `ok github.com/iPior/distributed-systems-lab/api 1.015s`. This records 20 passing executions of the targeted test with race instrumentation and no reported races. The full suite was not rerun after this addition. This is correctness evidence for exercised schedules, not a throughput measurement or proof covering all schedules. No application source, deployment, or service restart was required for this test-only change.
+
+Learner explained that workers run asynchronously and must all finish before results are checked. Instructor clarified that waiting also makes worker writes visible to the assertions. Follow-up checkpoint complete; stop before the next experiment.
+
 ## Analysis
 
 The changed invocation identity confirms a new service invocation, while the unchanged executable checksum controls for a code change during the restart/state test. Successful retrieval before restart, restored health afterward, and missing old ID before new creation support the hypothesis that this API's task data lives only in its process. The earlier executable deployment also exercised copy-triggered restart behavior, with unit content unchanged.
 
 ## Trade-offs and limitations
 
-One process and an in-memory store isolate state lifetime without database or replication behavior. Tests passed, including race instrumentation, but are sequential and do not establish concurrent safety. This was one restart observation, with learner-supplied terminal evidence; no restart-duration, load, capacity, multi-instance, crash-recovery, or durable-storage conclusion is supported. Guest formatting has not been copied back to repository source. Build provenance remains manual. No fresh unrelated-service health check was performed in this experiment.
+One process and an in-memory store isolate state lifetime without database or replication behavior. The original restart-checkpoint tests were sequential. The follow-up adds concurrent creation coverage with race instrumentation, but does not cover concurrent creation and lookup or establish safety for every possible schedule. This was one restart observation, with learner-supplied terminal evidence; no restart-duration, load, capacity, multi-instance, crash-recovery, or durable-storage conclusion is supported. Guest formatting has not been copied back to repository source. Build provenance remains manual. No fresh unrelated-service health check was performed in this experiment.
 
 ## Conclusion and next question
 

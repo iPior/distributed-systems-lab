@@ -6,8 +6,55 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 )
+
+func TestConcurrentCreateTasks(t *testing.T) {
+	const count = 10
+	store := newTaskStore()
+	created := make([]Task, count)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+
+	// Register all workers before starting them so Wait cannot finish early.
+	wg.Add(count)
+	for i := 0; i < count; i++ {
+		go func(index int) {
+			defer wg.Done()
+			<-start
+			// Each worker writes to its own slice element.
+			created[index] = store.create("Task " + strconv.Itoa(index))
+		}(i)
+	}
+
+	// Release the workers together, then wait before reading their results.
+	close(start)
+	wg.Wait()
+
+	seen := make(map[int]bool, count)
+	for i, task := range created {
+		if task.ID < 1 || task.ID > count {
+			t.Errorf("worker %d: ID %d outside range 1..%d", i, task.ID, count)
+		}
+		if seen[task.ID] {
+			t.Errorf("duplicate task ID: %d", task.ID)
+		}
+		seen[task.ID] = true
+
+		wantTitle := "Task " + strconv.Itoa(i)
+		if task.Title != wantTitle {
+			t.Errorf("worker %d: title got %q, want %q", i, task.Title, wantTitle)
+		}
+		got, found := store.get(task.ID)
+		if !found || got != task {
+			t.Errorf("lookup ID %d: found=%t, got %+v, want %+v", task.ID, found, got, task)
+		}
+	}
+	if got := len(store.tasks); got != count {
+		t.Errorf("stored task count: got %d, want %d", got, count)
+	}
+}
 
 func TestCreateAndGetTask(t *testing.T) {
 	store := newTaskStore()
