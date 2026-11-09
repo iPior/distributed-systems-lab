@@ -56,6 +56,51 @@ func TestConcurrentCreateTasks(t *testing.T) {
 	}
 }
 
+func TestConcurrentCreateAndGetTasks(t *testing.T) {
+	const workers = 10
+	const operations = 100
+	store := newTaskStore()
+	original := store.create("Original")
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(workers * 2)
+
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			<-start
+			for j := 0; j < operations; j++ {
+				got, found := store.get(original.ID)
+				if !found || got != original {
+					t.Errorf("lookup: found=%t, got %+v, want %+v",
+						found, got, original)
+					return
+				}
+			}
+		}()
+
+		go func(writer int) {
+			defer wg.Done()
+			<-start
+			for j := 0; j < operations; j++ {
+				store.create("Writer " + strconv.Itoa(writer) + " task " + strconv.Itoa(j))
+			}
+		}(i)
+	}
+
+	// Release readers and writers together; scheduling determines their interleaving.
+	close(start)
+	wg.Wait()
+
+	if got, want := len(store.tasks), 1+workers*operations; got != want {
+		t.Errorf("stored task count: got %d, want %d", got, want)
+	}
+	got, found := store.get(original.ID)
+	if !found || got != original {
+		t.Errorf("final lookup: found=%t, got %+v, want %+v", found, got, original)
+	}
+}
+
 func TestCreateAndGetTask(t *testing.T) {
 	store := newTaskStore()
 	created := store.create("Learn Go")
