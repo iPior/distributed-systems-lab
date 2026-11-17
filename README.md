@@ -8,7 +8,7 @@ Learn distributed systems by **building one small application in stages** and ru
 
 ## Current status: Stage 01 in progress
 
-The Go health API, [systemd supervision experiment](docs/experiments/01b-service-supervision.md), [Ansible deployment experiment](docs/experiments/01c-ansible-deployment.md), and [in-memory task experiment](docs/experiments/01d-in-memory-tasks.md) checkpoints are complete. Task tests and executable deployment passed; the old task returned 404 after a controlled restart with an unchanged executable. Stop at this checkpoint and agree the next experiment before advancing. Performance measurement remains pending.
+The Go health API, [systemd supervision experiment](docs/experiments/01b-service-supervision.md), [Ansible deployment experiment](docs/experiments/01c-ansible-deployment.md), and [in-memory task experiment](docs/experiments/01d-in-memory-tasks.md) checkpoints are complete. Task tests and executable deployment passed; the old task returned 404 after a controlled restart with an unchanged executable. The [HTTP baseline checkpoint](docs/experiments/01e-http-baseline.md) is complete: corrected eight-user runs through SSH reached roughly 12,000 health requests/second with all checks passing. SSH timing obfuscation was isolated as a measurement confounder; sampled resource observations did not establish a bottleneck or capacity limit. Stop here before agreeing a separate higher-load experiment. Stage 01 remains in progress.
 
 The guided infrastructure rebuild and lifecycle validation are complete. The active implementation lives in [`infrastructure/`](infrastructure/), with measured results and a repeatable checklist in [the learning run](docs/experiments/00-learning-run.md).
 
