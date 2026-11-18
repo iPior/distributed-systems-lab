@@ -11,7 +11,8 @@ resource "libvirt_domain" "node" {
   }
 
   network_interface {
-    network_id = libvirt_network.lab.id
+    bridge = "br0"
+    mac    = "52:54:00:56:8a:8a"
   }
 
   console {
